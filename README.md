@@ -4,7 +4,17 @@ File descriptor manager for Node.js. *Available in npm as <strong>fd</strong>*.
 
 ## Example
 
+*(this example is a bit contrived, something more realistic coming soon)*
+
 ```js
+var fdman = require('fd')()
+
+fdman.open('/foo/bar/baz.txt', function (err, fd) {
+  fdman.checkout('/foo/bar/baz.txt')
+  // do something with `fd`
+  fdman.checkin('/foo/bar/baz.txt')
+  fdman.close('/foo/bar/baz.txt')
+})
 ```
 
 ## API
