@@ -26,8 +26,8 @@ const fdman = require('fd')()
 
       // an async cache for fs.stat calls, fresh for 10s
     , statCache = AC({
-          max    : 10
-        , maxAge : 1000
+          max    : 100
+        , maxAge : 10000
         , load   : function (path, callback) {
                      fs.stat(path, callback)
                    }
@@ -35,8 +35,8 @@ const fdman = require('fd')()
 
       // an async cache for fds, fresh for 10s
     , fdCache = AC({
-          max     : 2
-        , maxAge  : 1000
+          max     : 100
+        , maxAge  : 10000
           // use fdman to open & close
         , load    : fdman.open.bind(fdman)
         , dispose : fdman.close.bind(fdman)
@@ -75,12 +75,8 @@ http.createServer(function (req, res) {
 
       // stream from the fd to the response
       var st = fs.createReadStream(p, { fd: fd, start: 0, end: stat.size })
-        .on('end', function () {
-          checkin(p, fd)
-        })
-        .on('error', function () {
-          checkin(p, fd)
-        })
+        .on('end', checkin)
+        .on('error', checkin)
 
       // override destroy so we don't close the fd
       st.destroy = function () {}
@@ -89,7 +85,8 @@ http.createServer(function (req, res) {
 
     })
   })
-}).listen(8080)```
+}).listen(8080)
+```
 
 ## API
 
