@@ -18,7 +18,6 @@ var totalOpenFds = 0 // across all instances
       delete this._fds[path]
 
       if (this._pendingClose[key(path, fd)]) {
-        console.log('close', path, fd)
         fs.close(fd, function () {})
         totalOpenFds--
         delete this._pendingClose[key(path, fd)]
@@ -47,7 +46,6 @@ var totalOpenFds = 0 // across all instances
 
       fs.open(path, 'r', function (er, fd) {
         if (!er) {
-        console.log('open', path, fd)
           totalOpenFds++
           this._fds[path] = fd
           this._fds[fd + path] = 0

@@ -74,7 +74,7 @@ http.createServer(function (req, res) {
       )
 
       // stream from the fd to the response
-      var st = fs.createReadStream(p, { fd: fd, start: 0, end: stat.size })
+      var st = fs.createReadStream(p, { fd: fd, start: 0, end: stat.size })n
         .on('end', checkin)
         .on('error', checkin)
 
