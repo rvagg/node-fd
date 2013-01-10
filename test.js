@@ -38,17 +38,53 @@ tap.test('open / checkout / close', function (t) {
     t.equal(fd, 101)
 
     // check it out
-    t.equal(fdman.checkout('/foo/bar/baz.txt'), 101)
+    fdman.checkout('/foo/bar/baz.txt', 101)
 
     // close it
-    fdman.close('/foo/bar/baz.txt')
+    fdman.close('/foo/bar/baz.txt', fd)
 
     process.nextTick(function () {
       // file should NOT be closed
       t.equal(closeSpy.callCount, 0)
 
       // check it in
-      fdman.checkin('/foo/bar/baz.txt')
+      fdman.checkin('/foo/bar/baz.txt', 101)
+      process.nextTick(function () {
+        // file should now be closed
+        fsMock.verify()
+        t.equal(0, FDManager._totalOpenFds)
+        t.end()
+      })
+    })
+  })
+})
+
+tap.test('open / checkout / close with checkinfn', function (t) {
+  var fsMock = sinon.mock(fs)
+    , fdman  = FDManager()
+    , closeSpy
+
+  fsMock.expects('open').once().withArgs('/foo/bar/baz.txt', 'r').callsArgWith(2, null, 101)
+  closeSpy = fsMock.expects('close').once().withArgs(101)
+
+  // open a file
+  fdman.open('/foo/bar/baz.txt', function (err, fd) {
+    t.notOk(err)
+    t.equal(fd, 101)
+
+    // check it out
+    fdman.checkout('/foo/bar/baz.txt', 101)
+    var checkin = fdman.checkinfn('/foo/bar/baz.txt', 101)
+
+    // close it
+    fdman.close('/foo/bar/baz.txt', fd)
+
+    process.nextTick(function () {
+      // file should NOT be closed
+      t.equal(closeSpy.callCount, 0)
+
+      // check it in
+      checkin('/foo/bar/baz.txt', 101)
       process.nextTick(function () {
         // file should now be closed
         fsMock.verify()
@@ -110,7 +146,7 @@ tap.test('many open files', function (t) {
                 async(function (callback) {
                   setTimeout(function () {
                     // checkout the file, `j` ms later
-                    t.equal(fdman.checkout(f), fd)
+                    fdman.checkout(f, fd)
                     if (j === i - 1) {
                       // on the last checkout, read from the fd to make sure it's
                       // what we expect
@@ -131,7 +167,7 @@ tap.test('many open files', function (t) {
                       // checkin by up to 10ms
                       // (this could be moved up into the checkout block to make sure
                       // the read doesn't cause problems)
-                      fdman.checkin(f)
+                      fdman.checkin(f, fd)
                       callback()
                     }, j + (Math.random() * 10))
                   })
@@ -144,7 +180,7 @@ tap.test('many open files', function (t) {
                 // close the file at some point after we've opened it, by this
                 // time there will be checkouts in process so it shouldn't be
                 // closeable
-                fdman.close(f)
+                fdman.close(f, fd)
                 callback()
               }, Math.floor(10 + Math.random() * i))
             })
