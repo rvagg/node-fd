@@ -129,6 +129,7 @@ tap.test('many open files', function (t) {
 
   // HAHAHAHAHAHAHAHAHAHAHAHAH!
   // good luck figuring this out buddy
+  // it made sense when it was coming out of my fingers at least
   mkfiletree.makeTemp('fd', filetree, function (err, dir) {
 
     // called for each of the 200 files
