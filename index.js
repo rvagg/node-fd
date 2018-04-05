@@ -48,7 +48,7 @@ var totalOpenFds = 0 // across all instances
         if (!er) {
           totalOpenFds++
           this._fds[path] = fd
-          this._fds[fd + path] = 0
+          this._fds[key(path, fd)] = 0
         }
 
         cb(er, fd)
